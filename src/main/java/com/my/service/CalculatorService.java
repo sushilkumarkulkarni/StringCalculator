@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import com.my.model.CalculatedValue;
 import com.my.model.InputValue;
@@ -17,6 +18,7 @@ import com.my.util.CalculatorConstants;
  * @author Sushil
  *
  */
+@Service
 public class CalculatorService {
 
 	/**
@@ -29,8 +31,8 @@ public class CalculatorService {
 	private InputValue inputValue;
 	
 	public static void main(String[] args) {
-	  int expressionCount=2;
-	  String expressionValues[]= {"7+(67(56*2))","5/2*4"};
+	  int expressionCount=1;
+	  String expressionValues[]= {"(5/2*4)"};
 	  CalculatorService calService=new CalculatorService();
 	  calService.inputValue=new InputValue();
 	  calService.inputValue.setGivenExpressions(expressionValues);
@@ -40,7 +42,7 @@ public class CalculatorService {
 
 	}
 	
-	private CalculatedValue calculateTotals(InputValue inputValue) {
+	public CalculatedValue calculateTotals(InputValue inputValue) {
 		calculatedValue =new CalculatedValue();
 		calculatedValue.setCalculatedTotalList(new ArrayList<OutputValue>());
 		if(inputValue.getNumberOfExpressions()!=inputValue.getGivenExpressions().length) {
@@ -54,7 +56,7 @@ public class CalculatorService {
 				OutputValue outputValue=new OutputValue();
 				outputValue.setGivenExpression(strExpr);
 				if(validateExpressions(strExpr)) {
-					
+					outputValue.setCalculatedTotal(applyRules(strExpr));
 				}else {
 					outputValue.setMessage(CalculatorConstants.CASE_NUMBER+i+CalculatorConstants.INVALID_EXPRESSION_MSG);	
 				}
@@ -67,7 +69,6 @@ public class CalculatorService {
 	
 	private long applyRules(String exprss) {
 		long calculatedTotal=0;
-		char [] charExpr=exprss.toCharArray();
 		int startIndx=exprss.lastIndexOf('(');
 		String strVal=exprss.substring(startIndx,exprss.length());
 		int endIndx=strVal.indexOf(')');
@@ -133,7 +134,7 @@ public class CalculatorService {
 			if(chr=='(') {
 				countOpeningBrackets++;
 			}else if(chr==')') {
-				countOpeningBrackets++;
+				countClosingBrackets++;
 			}
 		}
 		
@@ -146,7 +147,7 @@ public class CalculatorService {
 	private boolean validateOperators(String strExpr) {
 		String strValue=new String (strExpr);
 		strValue=strExpr.replaceAll("(", "");
-		strValue=strExpr.replaceAll(")", "");
+		strValue=strValue.replaceAll(")", "");
 		char[] charExpr=strValue.toCharArray();
 		boolean isValid=true;
 		

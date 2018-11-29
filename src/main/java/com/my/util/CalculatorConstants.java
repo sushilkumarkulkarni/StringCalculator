@@ -14,5 +14,7 @@ public class CalculatorConstants {
 	public static String INVALID_EXPRESSION_MSG="INVALID EXPRESSION";
 	
 	public static String CASE_NUMBER="Case #:";
+	
+	public static String JSON_FORMAT_EXCEPTION="JSON parsing exception.Please check json values";
 
 }
