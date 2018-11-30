@@ -36,8 +36,8 @@ public class CalculatorService {
 	private InputValue inputValue;
 	
 	public static void main(String[] args) {
-	  int expressionCount=1;
-	  String expressionValues[]= {"7+(6*5^2+3-4/2)"};//158//{"2+3*4/2"};//8,
+	  int expressionCount=3;
+	  String expressionValues[]= {"7+(6*5^2+3-4/2)","7+(67(56*2))","(8*5/8)-(3/1)-5"};//"7+(6*5^2+3-4/2)"};//158//{"2+3*4/2"};//8,
 	  CalculatorService calService=new CalculatorService();
 	  calService.inputValue=new InputValue();
 	  calService.inputValue.setGivenExpressions(expressionValues);
@@ -82,26 +82,31 @@ public class CalculatorService {
 	private long applyRules(String exprss) {
 		long calculatedTotal=0;
 		
-		if(exprss.indexOf('(')>-1){
-			while(exprss.indexOf('(')>-1){
-				int startIndx=exprss.lastIndexOf('(');
-				int endIndx=exprss.indexOf(')');
-				
-				String actualstrExpr=exprss.substring(startIndx+1,endIndx);
-				System.out.println("CalculatorService.applyRules()"+actualstrExpr);
-				calculatedTotal=totalSum(actualstrExpr);
-				String strSub1=exprss.substring(0,startIndx);
-				String strSub2=exprss.substring(endIndx+1,exprss.length());
-				System.out.println("CalculatorService.applyRules() sbstr1"+strSub1);
-				System.out.println("CalculatorService.applyRules() sbstr2"+strSub2);
-				
-				exprss=strSub1+calculatedTotal+strSub2;
-				
-			}
-		}else{
+//		if(exprss.indexOf('(')>-1){
+//			while(exprss.indexOf('(')>-1){
+//				int startIndx=exprss.lastIndexOf('(');
+//				int endIndx=exprss.lastIndexOf(')');
+//				
+//				String actualstrExpr=exprss.substring(startIndx+1,endIndx);
+//				System.out.println("CalculatorService.applyRules()"+actualstrExpr);
+//				//calculatedTotal=totalSum(actualstrExpr);
+//				//calculatedTotal=getTotalSum(actualstrExpr);
+//				String strSub1=exprss.substring(0,startIndx);
+//				String strSub2=exprss.substring(endIndx+1,exprss.length());
+//				System.out.println("CalculatorService.applyRules() sbstr1"+strSub1);
+//				System.out.println("CalculatorService.applyRules() sbstr2"+strSub2);
+//				
+//				exprss=strSub1+strSub2;
+//				
+//			}
+//		}
+		//else{*/
 			
-			calculatedTotal=totalSum(exprss);
-		}
+			//calculatedTotal=totalSum(exprss);
+		exprss=exprss.replace("(", "");
+		exprss=exprss.replace(")", "");
+			calculatedTotal=getTotalSum(exprss);
+		//}
 		
 		return calculatedTotal;
 		
@@ -110,10 +115,10 @@ public class CalculatorService {
 	private int getPriorityPosition(char chr){
 		int precendence=0;
 			switch(chr) {
-			case '/':
+			case '*':
 				precendence=5;
 				break;
-			case '*':
+			case '/':
 				precendence=4;
 				break;
 				
@@ -217,8 +222,22 @@ public class CalculatorService {
 		}
 		//System.out.println("CalculatorService.totalSum() "+positionList.size());
 		Collections.sort(positionList);
+		
+		calculatedTotal=getTotal(actualstrExpr, positionList);
+		
+		//last calculations
+		/*if(calculatedTotal>0){
+			firstVal=Long.toString(calculatedTotal);
+		}*/
+		return calculatedTotal;//getSubTotal(foundOperand, firstVal, secondVal);
+	}
+	
+	private long getTotal(String actualstrExpr,List <SubExpression> positionList) {
+		String firstVal="";
+		String secondVal="";
 		boolean first=false;
 		String tmpVal="";
+		long calculatedTotal=0;
 		List <SubExpression> subTotalList=new ArrayList<SubExpression>();
 		for(SubExpression subExpression:positionList){
 			firstVal=""+subExpression.getFirstVal();
@@ -249,11 +268,13 @@ public class CalculatorService {
 			
 			
 		}
-		//last calculations
-		/*if(calculatedTotal>0){
-			firstVal=Long.toString(calculatedTotal);
-		}*/
-		return calculatedTotal;//getSubTotal(foundOperand, firstVal, secondVal);
+		if(subTotalList.size()>1) {
+			getTotal(actualstrExpr, subTotalList);
+		}else {
+			SubExpression subExpre =subTotalList.get(0);
+			calculatedTotal=subExpre.getTotal();
+		}
+		return calculatedTotal;
 	}
 	/*private long totalSum(String actualstrExpr){
 		long calculatedTotal=0;
@@ -301,6 +322,137 @@ public class CalculatorService {
 		return getSubTotal(foundOperand, firstVal, secondVal);
 	}*/
 	
+	private long getTotalSum(String actualstrExpr){
+		long calculatedTotal=0;
+		
+		String firstVal="";
+		String secondVal="";
+		boolean isFirstFound=false;
+		char foundOperand=1;
+		boolean isOperandFound=false;
+		
+		boolean isProcess=true;
+		while(isProcess) {
+			int precedence=-1;
+			int indx=0;
+			char [] actualExpr=actualstrExpr.toCharArray();
+			char selectedChar=1;
+			for(int i=0;i<actualExpr.length;i++) {
+				char chr=actualExpr[i];
+				if(!isValidNumber(""+chr)) {
+					if(precedence<getPriorityPosition(chr)) {
+						precedence=getPriorityPosition(chr);
+						indx=i;
+						selectedChar=chr;
+						System.out.println("CalculatorService.getTotalSum() precedence "+precedence);
+						System.out.println("CalculatorService.getTotalSum() index "+indx);
+					}
+				}
+			}
+			
+			String prevVal=actualstrExpr.substring(0,indx);
+			/*char preChr[]=prevVal.toCharArray();
+			
+			for(int i=0;i<preChr.length;i++) {
+				char chr=preChr[i];
+				if(!isValidNumber(""+chr)) {
+					if(precedence<getPriorityPosition(chr)) {
+						precedence=getPriorityPosition(chr);
+						indx=i;
+						selectedChar=chr;
+						System.out.println("CalculatorService.getTotalSum() precedence "+precedence);
+						System.out.println("CalculatorService.getTotalSum() index "+indx);
+					}
+				}
+			}*/
+			
+			String nxtVal=actualstrExpr.substring(indx+1, actualstrExpr.length());
+			char prevChr[]=prevVal.toCharArray();
+			firstVal="";
+			secondVal="";
+			//to remove previous value
+			for(int i=prevChr.length-1;i>=0;i--) {
+				char chr=prevChr[i];
+				if(isValidNumber(""+chr)) {
+					firstVal=chr+firstVal;
+				}else {
+					break;
+				}
+			}
+			
+			/*for(int i=0;i<prevChr.length;i++) {
+				char chr=prevChr[i];
+				if(isValidNumber(""+chr)) {
+					firstVal=firstVal+chr;
+				}else {
+					break;
+				}
+			}*/
+			/*if(isCondition) {
+				actualstrExpr=actualstrExpr.substring(prevIndx,actualstrExpr.length());
+			}else {
+				actualstrExpr=actualstrExpr.substring(0,prevIndx+1);
+			}*/
+			
+			char nxtChr[]=nxtVal.toCharArray();
+			for(int i=0;i<nxtChr.length;i++) {
+				char chr=nxtChr[i];
+				if(isValidNumber(""+chr)) {
+					secondVal=secondVal+chr;
+				}else {
+					break;
+				}
+			}
+			//actualstrExpr=actualstrExpr+actualstrExpr.substring(secIndx,nxtValStr.length());
+			
+			long subtotal=getSubTotal(selectedChar, firstVal, secondVal);
+			String replacestr=firstVal+selectedChar+secondVal;
+			actualstrExpr=actualstrExpr.replace(replacestr, ""+subtotal);
+			if(isValidNumber(actualstrExpr)) {
+				isProcess=false;
+			}
+			//actualstrExpr=actualstrExpr+subtotal+nxtValStr.substring(secIndx+1,nxtValStr.length());;			
+		}
+		
+		/*for(char chr:actualExpr) {
+			if(isValidNumber(""+chr)) {
+				if(!isFirstFound) {
+					isOperandFound=false;
+					firstVal=firstVal+chr;
+				}else {
+					secondVal=secondVal+chr;
+				}
+			}else {
+				
+				if(!secondVal.equals("")) {
+					if(calculatedTotal>0){
+						firstVal=Long.toString(calculatedTotal);
+					}
+					calculatedTotal=getSubTotal(foundOperand, firstVal, secondVal);
+					secondVal="";
+					firstVal="";
+				}
+				
+				if(!isOperandFound){
+					isOperandFound=true;
+					foundOperand=chr;
+					isFirstFound=true;
+				}
+				
+				isOperandFound=false;
+				
+				
+			}
+			
+		}
+		//last calculations
+		if(calculatedTotal>0){
+			firstVal=Long.toString(calculatedTotal);
+		}*/
+		//return getSubTotal(foundOperand, firstVal, secondVal);
+		return Long.valueOf(actualstrExpr);
+	}
+	
 	private long getSubTotal(char chr,String firstVal,String secondVal){
 		long subTotal=0;
 		switch(chr) {
@@ -344,17 +496,28 @@ public class CalculatorService {
 		int countOpeningBrackets=0;
 		int countClosingBrackets=0;
 		boolean isValid=false;
-		for(char chr:charExpr) {
+		boolean isBracketValid=true;
+		for(int i=0;i<charExpr.length;i++) {
+			char chr=charExpr[i];
 			if(chr=='(') {
 				countOpeningBrackets++;
+				if(i>charExpr.length-1 && charExpr[i+1]==chr) {
+					isBracketValid=false;
+					break;
+				}
 			}else if(chr==')') {
 				countClosingBrackets++;
+				if(i>charExpr.length-1 && charExpr[i+1]==chr) {
+					isBracketValid=false;
+					break;
+				}
 			}
 		}
 		
-		if(countOpeningBrackets==countClosingBrackets) {
+		if(countOpeningBrackets==countClosingBrackets && isBracketValid) {
 			isValid=true;
 		}
+		
 		return isValid;
 	}
 	
